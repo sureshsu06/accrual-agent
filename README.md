@@ -1,94 +1,217 @@
-# Accrual Agent Assignment
+# AI Agent Workflow Assignment: Missing Invoice Detection
 
 ## Overview
 
-Your assignment is to build an AI agent system that can automate the accrual process in financial operations. This is a critical part of the month-end close process where companies need to record expenses that have been incurred but not yet invoiced or paid.
+Your assignment is to build a simple AI assistant that helps accounting teams identify and handle missing vendor invoices. In accounting, at the end of the month companies need to record the month's expenses even if they haven't received an invoice yet for a specific expense. E.g. You know that you use electricity from the grid during the month but you only receive the bill the 15th of next month. As an accountant, you need to estimate what the rough electricity bill for the month would be and 'accrue' the expense, even without a bill. 
 
-The goal is to demonstrate how AI agents can transform a traditionally manual process into an intelligent workflow that can identify, calculate, and manage accruals while collaborating with human users.
-
-## Assignment Objective
-
-Create a prototype application that implements an agentic workflow for handling expense accruals. Your solution should:
-
-1. Analyze historical transaction patterns to identify potential missing expenses
-2. Calculate appropriate accrual amounts based on historical data and contracts
-3. Generate documentation for audit purposes
-4. Implement a thoughtful UI/UX 
+Your goal is to build a system that will 1) Help detect what set of expenses will need accrual for the month, 2) Help compute what the accrual amount should be, 3) Get feedback from the accountant when needed, 4) Facilitate communications to external stakeholders to get missing information needed for the accrual
 
 ## Dataset Description
 
-The provided datasets represent a simplified version of the data you would encounter in a real financial system:
+We've provided CSV files with sample data:
 
-1. `historical_transactions.csv`: Past 12 months of vendor transactions
-2. `contracts.csv`: Current vendor contracts with payment terms
-3. `gl_accounts.csv`: General ledger account structure
-4. `previous_accruals.csv`: History of past accruals and their accuracy
-5. `vendors.csv`: Vendor master data
-6. `current_month_transactions.csv`: Transactions for the current month (April 2025)
+1. `historical_transactions.csv`: Past vendor payments
+2. `vendors.csv`: Information about the company's vendors
+3. `current_month_transactions.csv`: Transactions for the current month
+4. `previous_accruals.csv`: Accruals that have been done in the past
 
-## Technical Requirements
+## Implementation Requirements
 
-1. Implement at least three distinct AI agent roles:
-   - Analysis Agent: Identifies missing accruals by analyzing patterns
-   - Calculation Agent: Determines appropriate accrual amounts
-   - Documentation Agent: Prepares supporting evidence
-   - (Bonus) Communication Agent: Prepares outreach to vendors or employees for missing details
+Create a simple application with three AI agent components working together:
 
-2. Create a user interface that:
-   - Displays recommended accruals with confidence levels
-   - Allows users to review, modify, or approve accruals
-   - Provides explanations for how each accrual was determined
-   - Captures feedback for system improvement
+1. **Analysis Agent**
+   - Looks through historical transactions to find vendors who typically bill monthly, and when they typically bill
+   - Identifies which of these vendors are missing from the current month's transactions so far - consider past history here
+   - Prioritizes based on the amount and importance
+   - Gives a rationale for each recommendation
 
-3. Include workflows that handle:
-   - Normal case: Clear pattern of regular expenses
-   - Edge case: Unusual or first-time accruals
-   - Learning case: System improves based on corrections
-   - Vendor follow-up case: System identifies vendors who typically bill monthly but haven't submitted an invoice, and prepares appropriate communication
+2. **Calculation Agent**
+   - Estimates the expected invoice amount using the vendor's billing history
+   - Provides a confidence level for this estimate
+   - Shows reasoning for how it calculated this amount
 
-## Vendor Communication Feature
+3. **Communication Agent**
+   - Pick a few vendors where your accrual confidence goes below a threshold
+   - Highlight to the user that the recommended action is to send an email asking for details
+   - Share a draft email to the vendor asking about the missing invoice - the user can review this  
+   - Includes relevant details like the expected amount and typical invoice date
 
-As part of the assignment, implement a workflow where the system:
+## User Interface
 
-1. Identifies vendors who regularly bill on a monthly basis but haven't submitted an invoice for the current period
-2. Analyzes historical billing patterns to estimate the expected amount
-3. Prepares an email draft to the vendor requesting information about unbilled services
-4. Allows the user to review and send the communication
-5. Tracks responses and updates accruals accordingly
+Build a simple interface that shows:
 
-This feature demonstrates how AI agents can not only identify issues but also take proactive steps to resolve them while keeping humans in the loop.
+1. A list of recommended accruals with:
+   - Vendor name
+   - Expected amount
+   - Confidence level
+   - Status (New, Email Drafted, Email Sent, Response Received)
 
-## Technology Choices
+2. For low confidence cases:
+   - An explanation of why the system thinks the accrual is needed
+   - A draft email that the user can review and edit
+   - Buttons to approve/reject the system's recommendations
+   - A way to mark when responses are received
 
-You may use any technologies you're comfortable with, but we recommend:
-- Frontend: React, Vue, or similar modern framework
-- Backend: Node.js, Python, or similar
-- Database: Any SQL or NoSQL solution (or even flat files for this prototype)
-- AI tools: You may leverage OpenAI, Anthropic, or other AI APIs
+## Expected Agent Behaviors
+
+### Analysis Agent
+
+The Analysis Agent should:
+
+1. **Pattern Recognition**
+   - Identify vendors who bill on a regular monthly schedule
+   - Look for consistent billing amounts or predictable variations
+   - Notice typical billing dates (e.g., "usually bills between the 15th-20th")
+
+2. **Gap Detection**
+   - Compare current month transactions against expected transactions
+   - Identify which regular vendors are missing from current month
+   - Prioritize based on dollar amount and consistency of past billing
+
+3. **Reasoning**
+   - Explain why it believes an invoice is missing
+   - Provide evidence from historical transaction patterns
+   - Assign confidence level to its conclusion
+
+**Example Analysis:**
+*"Marketing Masters (vendor ID: V007) has sent invoices of $7,500 on the 22nd-23rd of each month for the past 12 months. There is no transaction from this vendor in the current month (April 2025), and we are now past their typical billing date. I'm 95% confident that this invoice is missing and [x] should be accrual amount"*
+
+### Calculation Agent
+
+The Calculation Agent should:
+
+1. **Amount Estimation**
+   - Calculate based on historical invoice amounts
+   - Consider any trends or seasonal patterns
+   - Account for known contract changes if applicable
+
+2. **Confidence Assessment**
+   - Provide confidence level for the estimate
+   - Higher confidence for consistent amounts
+   - Lower confidence for variable or trending amounts
+
+3. **Explanation**
+   - Describe calculation methodology
+   - Show relevant historical data points
+   - Explain any adjustments made to the estimate
+
+**Example Calculation:**
+*"Based on the last 12 months of invoices from Marketing Masters, they have consistently billed exactly $7,500.00 each month with no variation. This appears to be a fixed monthly retainer. I'm 98% confident that the missing invoice will be for $7,500.00."*
+
+### Communication Agent
+
+The Communication Agent should:
+
+1. **Email Creation**
+   - Draft clear, professional emails
+   - Include relevant details (expected amount, service period)
+   - Customize tone based on vendor relationship
+
+2. **Content Customization**
+   - Adjust wording based on confidence level
+   - Include appropriate context and history
+   - Format for readability and professionalism
+
+3. **Follow-up Awareness**
+   - Suggest appropriate timing for follow-ups
+   - Note any special handling based on vendor history
+   - Create appropriate urgency based on invoice amount
+
+**Example Communication:**
+*"Dear Marketing Masters Team,*
+
+*I hope this email finds you well. Our records indicate that we have not yet received your invoice for marketing services for April 2025.*
+
+*Based on our agreement, we typically receive a monthly invoice of $7,500.00 around the 22nd-23rd of each month. As we are preparing for our month-end close process, we wanted to check if this invoice has been sent or when we might expect to receive it.*
+
+*If you have already sent the invoice, please provide the invoice number and date so we can locate it in our system.*
+
+*Thank you for your assistance.*
+
+*Best regards,*
+*[Finance Team Member]*
+*[Company Name]*"
+
+## Implementation Approach
+
+Here's how you might approach implementing this system:
+
+### 1. Data Loading and Processing
+- Start by loading the CSV files and converting them to a usable format
+- Create functions to help filter and analyze the transaction data
+- Build helper functions to find patterns in historical transactions
+
+### 2. Agent Framework
+- Set up a system where agents can pass information to each other
+- Create a basic "brain" for each agent that can be connected to an AI API
+- Implement a simple orchestrator that manages the workflow between agents
+
+### 3. AI Integration
+- Connect the agents to an AI API (OpenAI, Anthropic, etc.)
+- Create prompts that explain the context and desired output
+- Implement parsing logic to extract structured information from AI responses
+
+### Example AI Prompts
+
+Here are examples of how you might structure prompts for each agent:
+
+#### Analysis Agent Prompt
+```
+You are an Analysis Agent that identifies missing vendor invoices.
+
+HISTORICAL TRANSACTIONS:
+[List of past transactions for Vendor X]
+
+CURRENT MONTH TRANSACTIONS:
+[List of current transactions]
+
+Based on this data, determine if Vendor X typically sends monthly invoices and if we're missing an invoice for the current month. Provide your reasoning and confidence level.
+```
+
+#### Calculation Agent Prompt
+```
+You are a Calculation Agent that estimates invoice amounts.
+
+VENDOR: [Vendor Name]
+HISTORICAL INVOICES:
+[List of past invoices with amounts and dates]
+
+Based on this data, estimate what the missing invoice amount should be for [Current Month]. Provide your calculation method, confidence level, and explanation.
+```
+
+#### Communication Agent Prompt
+```
+You are a Communication Agent that drafts emails to vendors.
+
+VENDOR: [Vendor Name]
+CONTACT: [Contact Email]
+RELATIONSHIP: [Relationship notes]
+EXPECTED INVOICE: [Amount] for [Service Description]
+TYPICAL INVOICE DATE: [Date]
+
+Draft a professional email to this vendor inquiring about the missing invoice. Be polite and specific about what we're expecting.
+```
+
+## Technical Guidance
+
+- You can use any frontend framework you're comfortable with (React, Vue, etc.)
+- Use the provided starter code to help structure your agent system
+- The agents should communicate with each other to complete the workflow
+- Use an AI API (like OpenAI or Anthropic) to power the agents' reasoning
 
 ## Evaluation Criteria
 
 We'll evaluate your submission based on:
-1. **Functionality**: Does it correctly identify and calculate accruals?
-2. **Agent Design**: How thoughtfully have you designed your agent system?
-3. **User Experience**: How intuitive and helpful is the interface?
-4. **Code Quality**: Is the code well-structured and maintainable?
-5. **AI Integration**: How effectively have you leveraged AI capabilities?
-6. **Documentation**: How clearly have you explained your approach?
+1. How well the agents work together to complete the workflow
+2. The quality of the user interface and experience
+3. How clearly your system explains its reasoning
+4. Code organization and quality
+5. Creativity in addressing the problem
 
 ## Submission Instructions
 
 Please provide:
 1. Source code in a GitHub repository
-2. README with setup instructions and approach explanation
-3. A brief demo video (5 minutes max) walking through the key features
-
-## AI Tools
-
-Feel free to use AI tools to act as a thought partner, but the overall design and approach should be your own.
-
-## Questions
-
-If you have any questions about the assignment, please reach out to us for clarification.
+2. A README with setup instructions
 
 Good luck!
