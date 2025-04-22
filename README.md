@@ -22,7 +22,7 @@ Create a simple application with three AI agent components working together:
 1. **Analysis Agent**
    - Looks through historical transactions to find vendors who typically bill monthly, and when they typically bill
    - Identifies which of these vendors are missing from the current month's transactions so far - consider past history here
-   - Prioritizes based on the amount and importance
+   - Prioritize based on the amount and importance
    - Gives a rationale for each recommendation
 
 2. **Calculation Agent**
@@ -195,7 +195,6 @@ Draft a professional email to this vendor inquiring about the missing invoice. B
 ## Technical Guidance
 
 - You can use any frontend framework you're comfortable with (React, Vue, etc.)
-- Use the provided starter code to help structure your agent system
 - The agents should communicate with each other to complete the workflow
 - Use an AI API (like OpenAI or Anthropic) to power the agents' reasoning
 
